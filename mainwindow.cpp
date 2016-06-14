@@ -409,7 +409,7 @@ void MainWindow::getHealthStats(QVector <HEALTHDATA> data, HEALTHSTAT *stat)
     double sdvdia = 0.0;
     double meabpm =0.0;
     double sdvbpm = 0.0;
-    int n = (int)cpy.count();
+    int n = (int) cpy.count();
 
     for(int i =0; i<n; i++){
         measys += cpy.at(i).sys;
@@ -419,6 +419,9 @@ void MainWindow::getHealthStats(QVector <HEALTHDATA> data, HEALTHSTAT *stat)
     measys /= n;
     meadia /= n;
     meabpm /= n;
+
+    n = (cpy.count()==1)?1:(n-1);   // for one point the sqrt(var) is doing well
+
     for(int i=0;i<n;i++){
         sdvsys += (cpy.at(i).sys-measys)*(cpy.at(i).sys-measys);
         sdvdia += (cpy.at(i).dia-meadia)*(cpy.at(i).dia-meadia);
@@ -1370,14 +1373,19 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 			widget_bp->graph(0)->addData(data.at(i).time, data.at(i).sys);
 			widget_bp->graph(1)->addData(data.at(i).time, data.at(i).dia);
             widget_hr->graph(0)->addData(data.at(i).time, data.at(i).bpm);
-            // fz
-            widget_hr->graph(1)->addData(data.at(i).time, stat.bpm_mea+stat.bpm_sdv);
-            widget_hr->graph(2)->addData(data.at(i).time, stat.bpm_mea-stat.bpm_sdv);
-            widget_bp->graph(2)->addData(data.at(i).time, stat.sys_mea+stat.sys_sdv);
-            widget_bp->graph(3)->addData(data.at(i).time, stat.sys_mea-stat.sys_sdv);
-            widget_bp->graph(4)->addData(data.at(i).time, stat.dia_mea+stat.dia_sdv);
-            widget_bp->graph(5)->addData(data.at(i).time, stat.dia_mea-stat.dia_sdv);
         }
+        widget_hr->graph(1)->addData(data.at(0).time, stat.bpm_mea+stat.bpm_sdv);
+        widget_hr->graph(1)->addData(data.at(data.count()-1).time, stat.bpm_mea+stat.bpm_sdv);
+        widget_hr->graph(2)->addData(data.at(0).time, stat.bpm_mea-stat.bpm_sdv);
+        widget_hr->graph(2)->addData(data.at(data.count()-1).time, stat.bpm_mea-stat.bpm_sdv);
+        widget_bp->graph(2)->addData(data.at(0).time, stat.sys_mea+stat.sys_sdv);
+        widget_bp->graph(2)->addData(data.at(data.count()-1).time, stat.sys_mea+stat.sys_sdv);
+        widget_bp->graph(3)->addData(data.at(0).time, stat.sys_mea-stat.sys_sdv);
+        widget_bp->graph(3)->addData(data.at(data.count()-1).time, stat.sys_mea-stat.sys_sdv);
+        widget_bp->graph(4)->addData(data.at(0).time, stat.dia_mea+stat.dia_sdv);
+        widget_bp->graph(4)->addData(data.at(data.count()-1).time, stat.dia_mea+stat.dia_sdv);
+        widget_bp->graph(5)->addData(data.at(0).time, stat.dia_mea-stat.dia_sdv);
+        widget_bp->graph(5)->addData(data.at(data.count()-1).time, stat.dia_mea-stat.dia_sdv);
 	}
 	else
 	{
