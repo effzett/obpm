@@ -91,12 +91,18 @@ struct HEALTHSTAT{
 	uint sys_min;
 	uint sys_mid;
 	uint sys_max;
-	uint dia_min;
+    uint sys_mea;
+    uint sys_sdv;
+    uint dia_min;
 	uint dia_mid;
 	uint dia_max;
-	uint bpm_min;
+    uint dia_mea;
+    uint dia_sdv;
+    uint bpm_min;
 	uint bpm_mid;
 	uint bpm_max;
+    uint bpm_mea;
+    uint bpm_sdv;
 };
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
