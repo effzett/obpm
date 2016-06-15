@@ -1361,7 +1361,7 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 		rangeStop->setDateTime(QDateTime(QDateTime::fromTime_t(data.last().time).date(), QTime(23, 59, 59, 999)));
 
 		widget_bp->xAxis->setRange(data.first().time - tdiff, data.last().time + tdiff);
-		widget_bp->yAxis->setRange(stat.dia_min - 10, stat.sys_max + 10);
+        widget_bp->yAxis->setRange(stat.dia_min - 10, stat.sys_max + 20);
 		widget_hr->xAxis->setRange(data.first().time - tdiff, data.last().time + tdiff);
 		widget_hr->yAxis->setRange(stat.bpm_min - 5, stat.bpm_max < 100 ? 100 : stat.bpm_max + 5);
 
@@ -1377,13 +1377,13 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
             if(data.at(i).msg != ""){
                 QCPItemText *textLabel = new QCPItemText(widget_bp);
                 widget_bp->addItem(textLabel);
-                textLabel->position->setCoords(data.at(i).time, data.at(i).sys+10);
+                textLabel->position->setCoords(data.at(i).time, data.at(i).sys+18);
                 textLabel->setText(data.at(i).msg);
-                textLabel->setFont(QFont(font().family(), 10));
-                //textLabel->setPen(QPen(Qt::black));
+                textLabel->setFont(QFont(font().family(), 12));
+                textLabel->setPen(QPen(Qt::black));
                 QCPItemLine *arrow = new QCPItemLine(widget_bp);
                 widget_bp->addItem(arrow);
-                arrow->start->setParentAnchor(textLabel->bottom);
+                arrow->start->setParentAnchor(textLabel->bottomLeft);
                 arrow->end->setCoords(data.at(i).time, data.at(i).sys);
                 arrow->setHead(QCPLineEnding::esSpikeArrow);
 
