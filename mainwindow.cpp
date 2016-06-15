@@ -1344,13 +1344,14 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 	widget_bp->graph(0)->clearData();
 	widget_bp->graph(1)->clearData();
 	widget_hr->graph(0)->clearData();
-    // fz
+
     widget_hr->graph(1)->clearData();
     widget_hr->graph(2)->clearData();
     widget_bp->graph(2)->clearData();
     widget_bp->graph(3)->clearData();
     widget_bp->graph(4)->clearData();
     widget_bp->graph(5)->clearData();
+    widget_bp->clearItems();
 
 	if(data.count())
 	{
@@ -1373,6 +1374,20 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 			widget_bp->graph(0)->addData(data.at(i).time, data.at(i).sys);
 			widget_bp->graph(1)->addData(data.at(i).time, data.at(i).dia);
             widget_hr->graph(0)->addData(data.at(i).time, data.at(i).bpm);
+            if(data.at(i).msg != ""){
+                QCPItemText *textLabel = new QCPItemText(widget_bp);
+                widget_bp->addItem(textLabel);
+                textLabel->position->setCoords(data.at(i).time, data.at(i).sys+10);
+                textLabel->setText(data.at(i).msg);
+                textLabel->setFont(QFont(font().family(), 10));
+                //textLabel->setPen(QPen(Qt::black));
+                QCPItemLine *arrow = new QCPItemLine(widget_bp);
+                widget_bp->addItem(arrow);
+                arrow->start->setParentAnchor(textLabel->bottom);
+                arrow->end->setCoords(data.at(i).time, data.at(i).sys);
+                arrow->setHead(QCPLineEnding::esSpikeArrow);
+
+            }
         }
         widget_hr->graph(1)->addData(data.at(0).time, stat.bpm_mea+stat.bpm_sdv);
         widget_hr->graph(1)->addData(data.at(data.count()-1).time, stat.bpm_mea+stat.bpm_sdv);
@@ -1386,7 +1401,9 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
         widget_bp->graph(4)->addData(data.at(data.count()-1).time, stat.dia_mea+stat.dia_sdv);
         widget_bp->graph(5)->addData(data.at(0).time, stat.dia_mea-stat.dia_sdv);
         widget_bp->graph(5)->addData(data.at(data.count()-1).time, stat.dia_mea-stat.dia_sdv);
-	}
+
+
+    }
 	else
 	{
 		widget_bp->plottable(0)->setName("SYS");
@@ -1584,8 +1601,9 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *me)
 					if(rc)
 					{
 						healthdata[user][record].msg = msg;
-					}
-				}
+                        buildGraph(healthdata[user], healthstat[user]);
+                    }
+                }
 			}
 		}
 		else
