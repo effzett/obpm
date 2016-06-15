@@ -148,7 +148,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     // Confidence band sys
     widget_bp->addGraph();
-    widget_bp->graph(2)->setName("Confidence band");
+    widget_bp->graph(2)->setName(tr("Confidence band"));
     widget_bp->graph(2)->setPen(QPen(Qt::gray));
     widget_bp->graph(2)->setLineStyle((QCPGraph::LineStyle)cfg.style);
     widget_bp->graph(2)->setBrush(QBrush(QColor(30,30,30,30)));
