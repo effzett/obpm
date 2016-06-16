@@ -130,9 +130,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	widget_bp->addGraph();
 	widget_bp->graph(0)->setPen(QPen(Qt::magenta));
 	widget_bp->graph(1)->setPen(QPen(Qt::blue));
-	widget_bp->graph(0)->setScatterStyle(QCPScatterStyle(QPixmap(":/png/png/sys.png")));
-	widget_bp->graph(1)->setScatterStyle(QCPScatterStyle(QPixmap(":/png/png/dia.png")));
-	widget_bp->graph(0)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_bp->graph(0)->setScatterStyle(QCPScatterStyle(QPixmap(":/png/png/sys.png")));
+    widget_bp->graph(1)->setScatterStyle(QCPScatterStyle(QPixmap(":/png/png/dia.png")));
+    widget_bp->graph(0)->setLineStyle((QCPGraph::LineStyle)cfg.style);
 	widget_bp->graph(1)->setLineStyle((QCPGraph::LineStyle)cfg.style);
 	widget_bp->xAxis->setTickLabelType(QCPAxis::ltDateTime);
 	widget_bp->xAxis->setDateTimeFormat("hh:mm\ndd.MM.yy");
@@ -1341,6 +1341,11 @@ void MainWindow::on_action_User2_toggled(bool enabled)
 
 void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 {
+    if(data.count()>= 80){
+        widget_bp->graph(0)->setScatterStyle(QCPScatterStyle::ssDot);
+        widget_bp->graph(1)->setScatterStyle(QCPScatterStyle::ssDot);
+        widget_hr->graph(0)->setScatterStyle(QCPScatterStyle::ssDiamond);
+    }
 	widget_bp->graph(0)->clearData();
 	widget_bp->graph(1)->clearData();
 	widget_hr->graph(0)->clearData();
