@@ -160,6 +160,7 @@ private slots:
 	void filterChanged(bool);
 	void xAxisBPChanged(QCPRange);
 	void xAxisHRChanged(QCPRange);
+	void plotAxisTicks();
 
 	bool eventFilter(QObject*, QEvent*);
 
