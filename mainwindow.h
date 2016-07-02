@@ -31,9 +31,9 @@
 #define APPNAME QObject::tr("Omron Blood Pressure Manager")
 #define APPTRNS QObject::tr("LazyT")
 #define APPLANG QObject::tr("English")
-#define APPVERS "1.0.7"
-#define APPDATE "01.05.2016"
-#define APPRELS "8"
+#define APPVERS "1.0.8"
+#define APPDATE "02.07.2016"
+#define APPRELS "9"
 
 #define SYS_NORM 135
 #define DIA_NORM 85
@@ -49,7 +49,7 @@
 	#define TABLE_CORR 0
 #endif
 
-#define tdiff 3600
+#define TDIFF 0.015
 
 #define CFG QDir::homePath() + QDir::separator() + ".obpm" + QDir::separator() + "obpm.cfg"
 #define DB QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QDir::separator() + "obpm.sql"
@@ -136,6 +136,8 @@ private:
 	QProgressDialog *pdlg;
 	QSqlDatabase db;
 	bool update;
+	int offsetUTC;
+	int tdiff;
 
 private slots:
 
@@ -160,6 +162,7 @@ private slots:
 	void filterChanged(bool);
 	void xAxisBPChanged(QCPRange);
 	void xAxisHRChanged(QCPRange);
+	void plotAxisTicks();
 
 	bool eventFilter(QObject*, QEvent*);
 
