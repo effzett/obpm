@@ -151,6 +151,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	widget_bp->axisRect(0)->setRangeDrag(Qt::Horizontal);
 	widget_bp->axisRect(0)->setRangeZoom(Qt::Horizontal);
 
+    // Confidence band sys
+    widget_bp->addGraph();
+    widget_bp->graph(2)->setName(tr("Confidence band"));
+    widget_bp->graph(2)->setPen(QPen(Qt::gray));
+    widget_bp->graph(2)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_bp->graph(2)->setBrush(QBrush(QColor(30,30,30,30)));
+    widget_bp->addGraph();
+    widget_bp->legend->removeItem(widget_bp->legend->itemCount()-1); // don't show two confidence band graphs in legend
+    widget_bp->graph(3)->setPen(QPen(Qt::gray));
+    widget_bp->graph(3)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_bp->graph(2)->setChannelFillGraph(widget_bp->graph(3));
+
+    // Confidence band dia
+    widget_bp->addGraph();
+    widget_bp->graph(4)->setName(tr("Confidence band"));
+    widget_bp->legend->removeItem(widget_bp->legend->itemCount()-1); // don't show two confidence band graphs in legend
+    widget_bp->graph(4)->setPen(QPen(Qt::gray));
+    widget_bp->graph(4)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_bp->graph(4)->setBrush(QBrush(QColor(30,30,30,30)));
+    widget_bp->addGraph();
+    widget_bp->legend->removeItem(widget_bp->legend->itemCount()-1); // don't show two confidence band graphs in legend
+    widget_bp->graph(5)->setPen(QPen(Qt::gray));
+    widget_bp->graph(5)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_bp->graph(4)->setChannelFillGraph(widget_bp->graph(5));
+
 	widget_hr->addGraph();
 	widget_hr->graph(0)->setPen(QPen(Qt::red));
 	widget_hr->graph(0)->setScatterStyle(QCPScatterStyle(QPixmap(":/png/png/bpm.png")));
@@ -168,6 +193,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	widget_hr->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 	widget_hr->axisRect(0)->setRangeDrag(Qt::Horizontal);
 	widget_hr->axisRect(0)->setRangeZoom(Qt::Horizontal);
+
+    // Confidence band bpm
+    widget_hr->addGraph();
+    widget_hr->graph(1)->setName(tr("Confidence band"));
+    widget_hr->graph(1)->setPen(QPen(Qt::gray));
+    widget_hr->graph(1)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_hr->graph(1)->setBrush(QBrush(QColor(30,30,30,30)));
+    widget_hr->addGraph();
+    widget_hr->legend->removeItem(widget_hr->legend->itemCount()-1); // don't show two confidence band graphs in legend
+    widget_hr->graph(2)->setPen(QPen(Qt::gray));
+    widget_hr->graph(2)->setLineStyle((QCPGraph::LineStyle)cfg.style);
+    widget_hr->graph(1)->setChannelFillGraph(widget_hr->graph(2));
+
 
 	connect(rangeStart, SIGNAL(dateTimeChanged(QDateTime)), this, SLOT(dateChanged()));
 	connect(rangeStop, SIGNAL(dateTimeChanged(QDateTime)), this, SLOT(dateChanged()));
@@ -407,11 +445,39 @@ void MainWindow::getHealthStats(QVector <HEALTHDATA> data, HEALTHSTAT *stat)
 {
 	QVector <HEALTHDATA> cpy(data);
 
+    double measys =0.0;
+    double sdvsys = 0.0;
+    double meadia =0.0;
+    double sdvdia = 0.0;
+    double meabpm =0.0;
+    double sdvbpm = 0.0;
+    int n = (int) cpy.count();
+
+    for(int i =0; i<n; i++){
+        measys += cpy.at(i).sys;
+        meadia += cpy.at(i).dia;
+        meabpm += cpy.at(i).bpm;
+    }
+    measys /= n;
+    meadia /= n;
+    meabpm /= n;
+
+    n = (cpy.count()==1)?1:(n-1);   // for one point the sqrt(var) is doing well
+
+    for(int i=0;i<n;i++){
+        sdvsys += (cpy.at(i).sys-measys)*(cpy.at(i).sys-measys);
+        sdvdia += (cpy.at(i).dia-meadia)*(cpy.at(i).dia-meadia);
+        sdvbpm += (cpy.at(i).bpm-meabpm)*(cpy.at(i).bpm-meabpm);
+    }
+
 	qSort(cpy.begin(), cpy.end(), [](const HEALTHDATA &a, const HEALTHDATA &b) { return a.sys < b.sys; });
 
 	stat->sys_min = cpy.first().sys;
 	stat->sys_mid = cpy.at(cpy.count() / 2).sys;
 	stat->sys_max = cpy.last().sys;
+
+    stat->sys_mea = (uint)(measys+0.5);
+    stat->sys_sdv = (uint)(sqrt(sdvsys/n)+0.5);
 
 	qSort(cpy.begin(), cpy.end(), [](const HEALTHDATA &a, const HEALTHDATA &b) { return a.dia < b.dia; });
 
@@ -419,11 +485,17 @@ void MainWindow::getHealthStats(QVector <HEALTHDATA> data, HEALTHSTAT *stat)
 	stat->dia_mid = cpy.at(cpy.count() / 2).dia;
 	stat->dia_max = cpy.last().dia;
 
+    stat->dia_mea = (uint)(meadia+0.5);
+    stat->dia_sdv = (uint)(sqrt(sdvdia/n)+0.5);
+
 	qSort(cpy.begin(), cpy.end(), [](const HEALTHDATA &a, const HEALTHDATA &b) { return a.bpm < b.bpm; });
 
 	stat->bpm_min = cpy.first().bpm;
 	stat->bpm_mid = cpy.at(cpy.count() / 2).bpm;
 	stat->bpm_max = cpy.last().bpm;
+
+    stat->bpm_mea = (uint)(meabpm+0.5);
+    stat->bpm_sdv = (uint)(sqrt(sdvbpm/n)+0.5);
 }
 
 void MainWindow::createDocTablePage(int tablecount, int tablerows, int index, QTextCursor cursor, QTextBlockFormat bfmt_pbrk, QTextBlockFormat bfmt_cntr, QTextCharFormat cfmt_bold, QTextCharFormat cfmt_norm, int *comments)
@@ -1303,6 +1375,7 @@ void MainWindow::on_action_resetZoom_triggered()
 	}
 }
 
+
 void MainWindow::on_action_addRecord_triggered()
 {
 	new recordDialog(this);
@@ -1352,9 +1425,22 @@ void MainWindow::on_action_User2_toggled(bool enabled)
 
 void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 {
+    if(data.count()>= 80){
+        widget_bp->graph(0)->setScatterStyle(QCPScatterStyle::ssDot);
+        widget_bp->graph(1)->setScatterStyle(QCPScatterStyle::ssDot);
+        widget_hr->graph(0)->setScatterStyle(QCPScatterStyle::ssDiamond);
+    }
 	widget_bp->graph(0)->clearData();
 	widget_bp->graph(1)->clearData();
 	widget_hr->graph(0)->clearData();
+
+    widget_hr->graph(1)->clearData();
+    widget_hr->graph(2)->clearData();
+    widget_bp->graph(2)->clearData();
+    widget_bp->graph(3)->clearData();
+    widget_bp->graph(4)->clearData();
+    widget_bp->graph(5)->clearData();
+    widget_bp->clearItems();
 
 	if(data.count())
 	{
@@ -1376,11 +1462,39 @@ void MainWindow::buildGraph(QVector <HEALTHDATA> data, HEALTHSTAT stat)
 
 		for(int i = 0; i < data.count(); i++)
 		{
-			widget_bp->graph(0)->addData(data.at(i).time + offsetUTC, data.at(i).sys);
-			widget_bp->graph(1)->addData(data.at(i).time + offsetUTC, data.at(i).dia);
-			widget_hr->graph(0)->addData(data.at(i).time + offsetUTC, data.at(i).bpm);
-		}
-	}
+			widget_bp->graph(0)->addData(data.at(i).time, data.at(i).sys);
+			widget_bp->graph(1)->addData(data.at(i).time, data.at(i).dia);
+            widget_hr->graph(0)->addData(data.at(i).time, data.at(i).bpm);
+            if(data.at(i).msg != ""){
+                QCPItemText *textLabel = new QCPItemText(widget_bp);
+                widget_bp->addItem(textLabel);
+                textLabel->position->setCoords(data.at(i).time, data.at(i).sys+18);
+                textLabel->setText(data.at(i).msg);
+                textLabel->setFont(QFont(font().family(), 12));
+                textLabel->setPen(QPen(Qt::black));
+                QCPItemLine *arrow = new QCPItemLine(widget_bp);
+                widget_bp->addItem(arrow);
+                arrow->start->setParentAnchor(textLabel->bottomLeft);
+                arrow->end->setCoords(data.at(i).time, data.at(i).sys);
+                arrow->setHead(QCPLineEnding::esSpikeArrow);
+
+            }
+        }
+        widget_hr->graph(1)->addData(data.at(0).time, stat.bpm_mea+stat.bpm_sdv);
+        widget_hr->graph(1)->addData(data.at(data.count()-1).time, stat.bpm_mea+stat.bpm_sdv);
+        widget_hr->graph(2)->addData(data.at(0).time, stat.bpm_mea-stat.bpm_sdv);
+        widget_hr->graph(2)->addData(data.at(data.count()-1).time, stat.bpm_mea-stat.bpm_sdv);
+        widget_bp->graph(2)->addData(data.at(0).time, stat.sys_mea+stat.sys_sdv);
+        widget_bp->graph(2)->addData(data.at(data.count()-1).time, stat.sys_mea+stat.sys_sdv);
+        widget_bp->graph(3)->addData(data.at(0).time, stat.sys_mea-stat.sys_sdv);
+        widget_bp->graph(3)->addData(data.at(data.count()-1).time, stat.sys_mea-stat.sys_sdv);
+        widget_bp->graph(4)->addData(data.at(0).time, stat.dia_mea+stat.dia_sdv);
+        widget_bp->graph(4)->addData(data.at(data.count()-1).time, stat.dia_mea+stat.dia_sdv);
+        widget_bp->graph(5)->addData(data.at(0).time, stat.dia_mea-stat.dia_sdv);
+        widget_bp->graph(5)->addData(data.at(data.count()-1).time, stat.dia_mea-stat.dia_sdv);
+
+
+    }
 	else
 	{
 		widget_bp->plottable(0)->setName("SYS");
@@ -1578,8 +1692,9 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *me)
 					if(rc)
 					{
 						healthdata[user][record].msg = msg;
-					}
-				}
+                        buildGraph(healthdata[user], healthstat[user]);
+                    }
+                }
 			}
 		}
 		else
